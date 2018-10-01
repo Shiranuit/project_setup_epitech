@@ -59,6 +59,7 @@ def repo_list():
     result = subprocess.run(['blih', '-u', user, '-t', token, 'repository', 'list'], stdout=subprocess.PIPE)
     if not isError(result.stdout):
         return [i for i in str(result.stdout.decode('utf-8')).split('\n') if len(i) > 0]
+    return []
 
 def prnt(stdout):
     out = isError(stdout)
