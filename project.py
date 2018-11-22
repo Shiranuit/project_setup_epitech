@@ -11,6 +11,28 @@ import re
 import readline
 import ast
 
+def colored(txt, color):
+    if (color.lower() == 'black'):
+        color = '\x1B[30m'
+    if (color.lower() == 'red'):
+        color = '\x1B[31m'
+    if (color.lower() == 'green'):
+        color = '\x1B[32m'
+    if (color.lower() == 'yellow'):
+        color = '\x1B[33m'
+    if (color.lower() == 'blue'):
+        color = '\x1B[34m'
+    if (color.lower() == 'magenta'):
+        color = '\x1B[35m'
+    if (color.lower() == 'cyan'):
+        color = '\x1B[36m'
+    if (color.lower() == 'white'):
+        color = '\x1B[37m'
+    return (color + txt + '\x1B[0m')
+
+def cprint(txt, color):
+    print(colored(txt, color));
+
 
 def completer(table):
     def comp(text, state):
