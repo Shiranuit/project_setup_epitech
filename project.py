@@ -9,7 +9,6 @@ import getpass
 import subprocess
 import re
 import readline
-from termcolor import colored, cprint
 import ast
 
 
@@ -30,7 +29,7 @@ def isError(stdout):
     out = stdout.decode('utf-8').split('\n')
     if len(out) > 1:
         if 'HTTP Error' in out[0]:
-            regout = re.match(r"Error message : '([^\']+)'", out[1])
+            regout = re.match(r"Error message : '(.+)'", out[1])
             if regout:
                 return regout.group(1)
 
@@ -59,14 +58,13 @@ def repo_list():
     result = subprocess.run(['blih', '-u', user, '-t', token, 'repository', 'list'], stdout=subprocess.PIPE)
     if not isError(result.stdout):
         return [i for i in str(result.stdout.decode('utf-8')).split('\n') if len(i) > 0]
-    return []
 
 def prnt(stdout):
     out = isError(stdout)
     if out:
         cprint(out, 'red')
     else:
-        cprint('\n'.join([i for i in stdout.decode('utf-8').split('\n') if len(i)>0]), 'green')
+        cprint('\n'.join([str(i).replace("arthur.chaloin@epitech.eu", "arthur.chaloin@epitech.eu / Epitest") for i in stdout.decode('utf-8').split('\n') if len(i)>0]), 'green')
 
 def repo_info(name):
     result = subprocess.run(['blih', '-u', user, '-t', token, 'repository', 'info', name],stdout=subprocess.PIPE)
@@ -77,7 +75,7 @@ def repo_info(name):
         dct = ast.literal_eval(result.stdout.decode('utf-8'))
         return dct
 
-options=['Setup Repository', 'List Repositories', 'Delete Repository', 'Check Ramassage-tek','Get Repository Access', 'Set Repository Access','Info Repository', 'Clone Repository', 'Change User']
+options=['Setup Repository', 'List Repositories', 'Delete Repository', 'Check Ramassage-tek Rights', 'Check Epitest Rights','Get Repository Access', 'Set Repository Access','Info Repository', 'Clone Repository', 'Change User']
 mx = 0
 for o in options:
     mx = max(mx, len(o)+6)
@@ -97,15 +95,23 @@ while not quit:
     if action == 1:
         readline.set_completer(None)
         repo_name = input("Repository name: ")
+        epitest = input("Want Epitest to access the repo (y/n): ")
         result = subprocess.run(['blih', '-u', user, '-t', token, 'repository', 'create', repo_name], stdout=subprocess.PIPE)
         if not isError(result.stdout):
             prnt(result.stdout)
             result = subprocess.run(['blih', '-u', user, '-t', token, 'repository', 'setacl', repo_name, 'ramassage-tek', 'r'],stdout=subprocess.PIPE)
             if not isError(result.stdout):
                 prnt(result.stdout)
-                cprint('Done!', 'cyan')
             else:
                 prnt(result.stdout)
+            if (epitest.lower() == "y" or epitest.lower() == "yes"):
+                result = subprocess.run(['blih', '-u', user, '-t', token, 'repository', 'setacl', repo_name, 'arthur.chaloin@epitech.eu', 'r'],stdout=subprocess.PIPE)
+                if not isError(result.stdout):
+                    prnt(result.stdout)
+                    cprint("Epitest Rights added to the Repository", "yellow")
+                else:
+                    prnt(result.stdout)
+            cprint('Done!', 'cyan')
         else:
             prnt(result.stdout)
     elif action == 2:
@@ -126,11 +132,20 @@ while not quit:
         else:
             cprint('Nothing can be checked', 'red')
     elif action == 5:
+        lst = repo_list()
+        if lst:
+            for repo_name in lst:
+                result = subprocess.run(['blih', '-u', user, '-t', token, 'repository', 'setacl', repo_name, 'arthur.chaloin@epitech.eu', 'r'],stdout=subprocess.PIPE)
+                print('['+colored(isError(result.stdout) and 'X' or 'V', isError(result.stdout) and 'red' or 'green')+']'+colored(repo_name,'yellow'))
+            cprint('Done! Everything is checked', 'cyan')
+        else:
+            cprint('Nothing can be checked', 'red')
+    elif action == 6:
         completer(repo_list())
         repo_name = input("Repository name: ")
         result = subprocess.run(['blih', '-u', user, '-t', token, 'repository', 'getacl', repo_name],stdout=subprocess.PIPE)
         prnt(result.stdout)
-    elif action == 6:
+    elif action == 7:
         completer(repo_list())
         repo_name = input("Repository name: ")
         readline.set_completer(None)
@@ -138,7 +153,7 @@ while not quit:
         rights = input('Rights (r-w-a): ')
         result = subprocess.run(['blih', '-u', user, '-t', token, 'repository', 'setacl', repo_name, user_name, rights],stdout=subprocess.PIPE)
         prnt(result.stdout)
-    elif action == 7:
+    elif action == 8:
         completer(repo_list())
         repo_name = input("Repository name: ")
         data = repo_info(repo_name)
@@ -150,7 +165,7 @@ while not quit:
             for k, v in data.items():
                 print("║"+colored(k, 'yellow') + ' : ' + colored(v, 'cyan') +" "*(inmx-len(k + " : " + v)) + "║")
             print("╚" + "═" * inmx + "╝")
-    elif action == 8:
+    elif action == 9:
         completer(repo_list())
         repo_name = input("Repository name: ")
         result = subprocess.run(['git', 'clone', 'git@git.epitech.eu:'+user+'/'+repo_name],stdout=subprocess.PIPE)
